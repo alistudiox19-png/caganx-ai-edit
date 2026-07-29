@@ -220,9 +220,19 @@ def admin_stats():
     settings = {row["key"]: row["value"] for row in c.fetchall()}
 
     # System Performance Metrics
-    cpu_percent = psutil.cpu_percent(interval=None)
-    ram = psutil.virtual_memory()
-    disk = psutil.disk_usage('/')
+    try:
+        cpu_percent = psutil.cpu_percent(interval=None)
+        ram = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        sys_metrics = {
+            "cpu": cpu_percent,
+            "ram_percent": ram.percent,
+            "ram_used_mb": round(ram.used / (1024 * 1024), 1),
+            "ram_total_mb": round(ram.total / (1024 * 1024), 1),
+            "disk_percent": disk.percent
+        }
+    except Exception:
+        sys_metrics = {"cpu": 0, "ram_percent": 0, "ram_used_mb": 0, "ram_total_mb": 0, "disk_percent": 0}
 
     conn.close()
     
@@ -236,13 +246,7 @@ def admin_stats():
         "users": users,
         "bans": bans,
         "settings": settings,
-        "system": {
-            "cpu": cpu_percent,
-            "ram_percent": ram.percent,
-            "ram_used_mb": round(ram.used / (1024 * 1024), 1),
-            "ram_total_mb": round(ram.total / (1024 * 1024), 1),
-            "disk_percent": disk.percent
-        }
+        "system": sys_metrics
     })
 
 # ADMIN API: Toggle Maintenance Mode

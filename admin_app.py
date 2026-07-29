@@ -6,7 +6,10 @@ import time
 import sqlite3
 import threading
 import subprocess
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
 import json
 import urllib.request
 import urllib.parse
