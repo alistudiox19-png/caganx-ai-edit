@@ -714,7 +714,10 @@ async function go(action) {
         backendSuccess = true;
         clearInterval(progInterval);
         msg("🎉 " + (d.message || "%100 İşlem Başarıyla Tamamlandı!"), 0, "ok", 100);
-        const outUrl = d.download || origUrl;
+        let outUrl = d.download || origUrl;
+        if (outUrl && outUrl.startsWith("/")) {
+          outUrl = getBackendUrl(outUrl);
+        }
         dla.href = outUrl;
         dla.download = "caganx_" + action + "_" + file.name;
         dl.style.display = "block";

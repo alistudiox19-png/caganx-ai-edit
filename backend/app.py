@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, make_response
 from flask_cors import CORS
 import subprocess
 import os
@@ -70,7 +70,10 @@ def process():
 def serve_output(filename):
     fpath = OUTPUT_DIR / filename
     if fpath.exists():
-        return send_file(str(fpath), as_attachment=True)
+        res = make_response(send_file(str(fpath), as_attachment=True))
+        res.headers["Access-Control-Allow-Origin"] = "*"
+        res.headers["Access-Control-Allow-Headers"] = "*"
+        return res
     return jsonify({"status": "error", "message": "Dosya bulunamadi"}), 404
 
 @app.route("/preupload", methods=["POST"])
