@@ -10,6 +10,14 @@ outputs/
 *.jpg
 *.png
 
+# Admin Panel (Sadece Yerel Bilgisayarda Kalır - GitHub'a GİTMEZ)
+admin_server.py
+admin_app.py
+admin_panel.html
+ADMIN_PANEL_BASLAT.bat
+ADMIN_PANEL.vbs
+caganx_admin.db
+
 # Python
 __pycache__/
 *.pyc
@@ -19,3 +27,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 *.lock
+
+cloudflared.exe
+*.exe
