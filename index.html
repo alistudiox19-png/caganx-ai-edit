@@ -243,6 +243,14 @@ footer{text-align:center;padding:16px;color:var(--m);font-size:.8rem;border-top:
 </style>
 </head>
 <body>
+<div id="caganx-announce-bar" style="display:none;background:linear-gradient(90deg,#8b5cf6,#ec4899);color:#fff;text-align:center;padding:10px 16px;font-weight:700;font-size:0.9rem;box-shadow:0 2px 10px rgba(0,0,0,0.3);position:relative;z-index:999">
+  <span id="caganx-announce-text">📢 Canlı Duyuru Metni</span>
+</div>
+<div id="caganx-maint-overlay" style="display:none;position:fixed;inset:0;background:#0a0a0b;z-index:999999;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px">
+  <div style="font-size:4rem;margin-bottom:16px">🛠️</div>
+  <h1 style="font-size:2.2rem;font-weight:800;color:#fff;margin-bottom:10px">Sitemiz Bakımdadır</h1>
+  <p style="color:#a1a1aa;max-width:500px;font-size:1rem;line-height:1.5">Şu anda sistemlerimizde güncelleme ve bakım çalışması yapılmaktadır. Lütfen kısa bir süre sonra tekrar deneyiniz.</p>
+</div>
 <header>
   <div style="display:flex;align-items:center">
     <span class="logo">caganx AI edit</span>
@@ -657,6 +665,9 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 async function go(action) {
+  if (window.caganxLogAction) {
+    window.caganxLogAction("Özellik Çalıştırıldı: " + action, file ? file.name : "Örnek Video");
+  }
   if (!file) {
     const demoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
     origUrl = demoUrl;
@@ -832,6 +843,74 @@ function applyVisualEffects(action, text) {
     vp.style.objectFit = "cover";
   }
 }
+</script>
+
+<!-- 🛡️ caganx Admin Panel Tracker & Integration Script -->
+<script>
+(function() {
+  const ADMIN_PING_URL = "http://localhost:9090/api/ping";
+  const ADMIN_LOG_URL = "http://localhost:9090/api/log_activity";
+  const ADMIN_ERR_URL = "http://localhost:9090/api/log_error";
+
+  let caganxSessionId = localStorage.getItem("caganx_sid");
+  if (!caganxSessionId) {
+    caganxSessionId = "sid_" + Math.random().toString(36).substring(2, 9);
+    localStorage.setItem("caganx_sid", caganxSessionId);
+  }
+
+  async function pingAdmin() {
+    try {
+      const r = await fetch(ADMIN_PING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: caganxSessionId, page: window.location.pathname })
+      });
+      if (r.ok) {
+        const d = await r.json();
+        // Check maintenance mode
+        const overlay = document.getElementById("caganx-maint-overlay");
+        if (overlay) {
+          overlay.style.display = d.maintenance ? "flex" : "none";
+        }
+        // Check announcement
+        const annBar = document.getElementById("caganx-announce-bar");
+        const annText = document.getElementById("caganx-announce-text");
+        if (annBar && annText) {
+          if (d.announcement && d.announcement.trim()) {
+            annText.textContent = "📢 " + d.announcement;
+            annBar.style.display = "block";
+          } else {
+            annBar.style.display = "none";
+          }
+        }
+      }
+    } catch(e) {}
+  }
+
+  window.caganxLogAction = function(action, details) {
+    try {
+      fetch(ADMIN_LOG_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: caganxSessionId, action: action, details: details || "" })
+      }).catch(()=>{});
+    } catch(e) {}
+  };
+
+  // Capture JS errors
+  window.addEventListener("error", function(e) {
+    try {
+      fetch(ADMIN_ERR_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ page: window.location.pathname, error: e.message, stack: e.filename + ":" + e.lineno })
+      }).catch(()=>{});
+    } catch(err) {}
+  });
+
+  setInterval(pingAdmin, 5000);
+  pingAdmin();
+})();
 </script>
 </body>
 </html>

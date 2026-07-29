@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛡️ caganx AI edit - Özel Admin Kontrol Paneli</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+<style>
+:root {
+  --bg: #09090b;
+  --card: #121215;
+  --card-hover: #18181c;
+  --border: #27272a;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --accent: #8b5cf6;
+  --accent-glow: rgba(139, 92, 246, 0.25);
+  --green: #22c55e;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --blue: #3b82f6;
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px; background: rgba(18, 18, 21, 0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border); sticky: top; top: 0; z-index: 100;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo-title { font-size: 1.25rem; font-weight: 800; background: linear-gradient(135deg, #fff, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.badge-admin { background: rgba(139, 92, 246, 0.2); border: 1px solid var(--accent); color: #c4b5fd; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 99px; letter-spacing: 0.05em; }
+
+.status-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--green); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.6; } }
+
+main { flex: 1; max-width: 1300px; margin: 0 auto; width: 100%; padding: 24px 20px 60px; }
+
+/* Grid Cards */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: transform 0.2s, border-color 0.2s; position: relative; overflow: hidden; }
+.card:hover { border-color: rgba(139, 92, 246, 0.4); transform: translateY(-2px); }
+.card-title { font-size: 0.82rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.card-value { font-size: 1.8rem; font-weight: 800; color: #fff; }
+.card-hint { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+/* Controls bar */
+.control-bar { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; }
+.toggle-wrap { display: flex; align-items: center; gap: 12px; }
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #3f3f46; transition: .3s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--red); }
+input:checked + .slider:before { transform: translateX(24px); }
+
+/* Tabs */
+.tab-header { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+.tab-btn { background: transparent; border: none; color: var(--muted); padding: 12px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; white-space: nowrap; }
+.tab-btn:hover, .tab-btn.active { color: #fff; border-bottom-color: var(--accent); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Tables */
+.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+th { background: #18181c; padding: 14px 18px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); text-transform: uppercase; font-size: 0.75rem; }
+td { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e4e4e7; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--card-hover); }
+
+/* Action Stream Logs */
+.log-stream { background: #0c0c0e; border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: monospace; font-size: 0.85rem; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.log-item { display: flex; gap: 12px; align-items: flex-start; padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.02); }
+.log-time { color: var(--muted); min-width: 75px; }
+.log-action { color: var(--accent); font-weight: 700; min-width: 130px; }
+.log-details { color: #d4d4d8; flex: 1; word-break: break-all; }
+
+/* Buttons & Inputs */
+.btn { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+.btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-red { background: var(--red); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: var(--border); }
+.input-text { background: #18181c; border: 1px solid var(--border); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; outline: none; }
+.input-text:focus { border-color: var(--accent); }
+
+.badge-tag { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+.badge-green { background: rgba(34, 197, 94, 0.15); color: var(--green); border: 1px solid rgba(34, 197, 94, 0.3); }
+.badge-red { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span style="font-size: 1.5rem">🛡️</span>
+    <div>
+      <span class="logo-title">caganx AI edit</span>
+      <span class="badge-admin">KONTROL MERKEZİ V1.0</span>
+    </div>
+  </div>
+  <div class="status-indicator">
+    <div class="dot"></div>
+    <span>CANLI SUNUCU BAĞLANTISI AKTİF</span>
+  </div>
+</header>
+
+<main>
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="card">
+      <div class="card-title">🟢 Anlık Aktif Ziyaretçi <span>🟢</span></div>
+      <div class="card-value" id="st-active">0</div>
+      <div class="card-hint">Şu anda sitede gezen kişi sayısı</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎬 Bugün Yapılan İşlem <span>📊</span></div>
+      <div class="card-value" id="st-edits">0</div>
+      <div class="card-hint">Son 24 saatteki 45 özellik aksiyonu</div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ CPU & RAM Kullanımı <span>💻</span></div>
+      <div class="card-value" id="st-sys">0%</div>
+      <div class="card-hint" id="st-ram">RAM: 0 MB / 0 MB</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡️ Engellenen IP Sayısı <span>⛔</span></div>
+      <div class="card-value" id="st-bans">0</div>
+      <div class="card-hint">Yasaklı IP listesi</div>
+    </div>
+  </div>
+
+  <!-- Control Bar -->
+  <div class="control-bar">
+    <div class="toggle-wrap">
+      <label class="switch">
+        <input type="checkbox" id="chk-maint" onchange="toggleMaintenance()">
+        <span class="slider"></span>
+      </label>
+      <div>
+        <div style="font-weight: 700; font-size: 0.92rem">🛠️ Bakım Modu Şalteri</div>
+        <div style="font-size: 0.78rem; color: var(--muted)">Açıldığında tüm ziyaretçilere "Sitemiz Bakımdadır" ekranı çıkar.</div>
+      </div>
+    </div>
+
+    <div style="margin-left: auto; display: flex; gap: 10px; align-items: center; width: 100%; max-width: 500px">
+      <input type="text" class="input-text" id="in-announce" placeholder="Canlı Site Duyurusu Yazın..." style="flex: 1">
+      <button class="btn" onclick="saveAnnouncement()">📢 Duyuruyu Yayınla</button>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tab-header">
+    <button class="tab-btn active" onclick="switchTab('tab-stream')">⚡ Canlı Hareket Akışı</button>
+    <button class="tab-btn" onclick="switchTab('tab-active')">👥 Aktif Ziyaretçiler Listesi</button>
+
+    <button class="tab-btn" onclick="switchTab('tab-errors')">⚠️ Hata Logları</button>
+    <button class="tab-btn" onclick="switchTab('tab-bans')">⛔ IP Ban & Güvenlik</button>
+  </div>
+
+  <!-- Tab 1: Action Stream -->
+  <div id="tab-stream" class="tab-content active">
+    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; color: var(--muted)">📜 CANLI HAREKET & TIKLAMA AKIŞI (AUDIT LOGS)</div>
+    <div class="log-stream" id="stream-box">
+      <div class="log-item"><span class="log-time">Yükleniyor...</span></div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Active Visitors -->
+  <div id="tab-active" class="tab-content">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>IP Adresi</th>
+            <th>Mevcut Sayfa</th>
+            <th>Cihaz / Tarayıcı</th>
+            <th>Son Görülme</th>
+            <th>Aksiyon</th>
+          </tr>
+        </thead>
+        <tbody id="tb-active">
+          <tr><td colspan="5">Ziyaretçi bekleniyor...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 4: Error Logs -->
+  <div id="tab-errors" class="tab-content">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Zaman</th>
+            <th>IP Adresi</th>
+            <th>Sayfa</th>
+            <th>Hata Mesajı</th>
+          </tr>
+        </thead>
+        <tbody id="tb-errors">
+          <tr><td colspan="4">Hata kaydı yok.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 5: Ban Management -->
+  <div id="tab-bans" class="tab-content">
+    <div style="display: flex; gap: 10px; margin-bottom: 16px">
+      <input type="text" class="input-text" id="in-ban-ip" placeholder="Engellenecek IP Adresi (Örn: 192.168.1.1)" style="width: 300px">
+      <input type="text" class="input-text" id="in-ban-reason" placeholder="Engelleme Sebebi" style="width: 250px">
+      <button class="btn btn-red" onclick="banIp()">⛔ IP Engelleyin</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Yasaklı IP</th>
+            <th>Sebep</th>
+            <th>Yasaklanma Zamanı</th>
+            <th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="tb-bans">
+          <tr><td colspan="4">Yasaklı IP bulunmuyor.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function fmtTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleTimeString('tr-TR');
+}
+
+async function fetchStats() {
+  try {
+    const r = await fetch('/admin/api/stats');
+    if (!r.ok) return;
+    const d = await r.json();
+
+    // Cards
+    document.getElementById('st-active').textContent = d.active_users;
+    document.getElementById('st-edits').textContent = d.edits_today;
+    document.getElementById('st-sys').textContent = d.system.cpu + '% (CPU)';
+    document.getElementById('st-ram').textContent = `RAM: ${d.system.ram_used_mb} MB / ${d.system.ram_total_mb} MB (%${d.system.ram_percent})`;
+    document.getElementById('st-bans').textContent = d.bans.length;
+
+    // Maintenance Switch state
+    const isMaint = d.settings.maintenance === '1';
+    document.getElementById('chk-maint').checked = isMaint;
+
+    // Announcement input placeholder
+    if (d.settings.announcement && !document.activeElement.id.includes('in-announce')) {
+      document.getElementById('in-announce').value = d.settings.announcement;
+    }
+
+    // Stream logs
+    const streamBox = document.getElementById('stream-box');
+    streamBox.innerHTML = '';
+    if (d.recent_logs.length === 0) {
+      streamBox.innerHTML = '<div class="log-item"><span class="log-details">Henüz kayıtlı hareket yok.</span></div>';
+    } else {
+      d.recent_logs.forEach(l => {
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        item.innerHTML = `
+          <span class="log-time">${fmtTime(l.timestamp)}</span>
+          <span class="log-action">${l.action}</span>
+          <span class="log-details"><b>${l.ip}</b> - ${l.details || ''}</span>
+        `;
+        streamBox.appendChild(item);
+      });
+    }
+
+    // Active Visitors Table
+    const tbActive = document.getElementById('tb-active');
+    tbActive.innerHTML = '';
+    if (d.active_list.length === 0) {
+      tbActive.innerHTML = '<tr><td colspan="5">Şu an aktif ziyaretçi yok.</td></tr>';
+    } else {
+      d.active_list.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${u.ip}</b></td>
+          <td><span class="badge-tag badge-green">${u.page}</span></td>
+          <td style="font-size:0.75rem; color:var(--muted); max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${u.user_agent}</td>
+          <td>${fmtTime(u.last_seen)}</td>
+          <td><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem" onclick="quickBan('${u.ip}')">⛔ Engelle</button></td>
+        `;
+        tbActive.appendChild(tr);
+      });
+    }
+
+    // Error Logs Table
+    const tbErr = document.getElementById('tb-errors');
+    tbErr.innerHTML = '';
+    if (d.error_logs.length === 0) {
+      tbErr.innerHTML = '<tr><td colspan="4">Hata kaydı yok.</td></tr>';
+    } else {
+      d.error_logs.forEach(e => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${fmtTime(e.timestamp)}</td>
+          <td>${e.ip}</td>
+          <td>${e.page}</td>
+          <td style="color:var(--red); font-weight:600">${e.error_msg}</td>
+        `;
+        tbErr.appendChild(tr);
+      });
+    }
+
+    // Bans Table
+    const tbBans = document.getElementById('tb-bans');
+    tbBans.innerHTML = '';
+    if (d.bans.length === 0) {
+      tbBans.innerHTML = '<tr><td colspan="4">Yasaklı IP yok.</td></tr>';
+    } else {
+      d.bans.forEach(b => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${b.ip}</b></td>
+          <td>${b.reason}</td>
+          <td>${fmtTime(b.created_at)}</td>
+          <td><button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem" onclick="unbanIp('${b.ip}')">Kaldır</button></td>
+        `;
+        tbBans.appendChild(tr);
+      });
+    }
+
+  } catch(e) {
+    console.error("Stats Error:", e);
+  }
+}
+
+async function toggleMaintenance() {
+  const val = document.getElementById('chk-maint').checked;
+  await fetch('/admin/api/toggle_maintenance', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({maintenance: val})
+  });
+  fetchStats();
+}
+
+async function saveAnnouncement() {
+  const txt = document.getElementById('in-announce').value;
+  await fetch('/admin/api/set_announcement', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text: txt})
+  });
+  alert('📢 Duyuru başarıyla yayınlandı!');
+  fetchStats();
+}
+
+async function banIp() {
+  const ip = document.getElementById('in-ban-ip').value.trim();
+  const reason = document.getElementById('in-ban-reason').value.trim();
+  if(!ip) return alert('Lütfen IP girin');
+  await fetch('/admin/api/ban_ip', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ip: ip, reason: reason})
+  });
+  document.getElementById('in-ban-ip').value = '';
+  document.getElementById('in-ban-reason').value = '';
+  fetchStats();
+}
+
+async function quickBan(ip) {
+  if(!confirm(ip + ' adresini engellemek istediğinize emin misiniz?')) return;
+  await fetch('/admin/api/ban_ip', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ip: ip, reason: 'Admin Panel Hızlı Ban'})
+  });
+  fetchStats();
+}
+
+async function unbanIp(ip) {
+  await fetch('/admin/api/unban_ip', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ip: ip})
+  });
+  fetchStats();
+}
+
+setInterval(fetchStats, 2000);
+fetchStats();
+</script>
+</body>
+</html>
