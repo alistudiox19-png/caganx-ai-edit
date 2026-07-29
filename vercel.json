@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "name": "caganx-edit",
+  "alias": [
+    "caganx-edit.vercel.app",
+    "caganxedit.com"
+  ],
+  "rewrites": [
+    { "source": "/process", "destination": "/api/process" },
+    { "source": "/preupload", "destination": "/api/preupload" }
+  ]
+}

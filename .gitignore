@@ -1,0 +1,21 @@
+# Video dosyalari - bunlar GitHub'a gitmemeli
+uploads/
+outputs/
+*.mp4
+*.mov
+*.webm
+*.avi
+*.mkv
+*.gif
+*.jpg
+*.png
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# System
+.DS_Store
+Thumbs.db
+*.lock

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: caganx-ffmpeg-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
