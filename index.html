@@ -1057,20 +1057,20 @@ function sendAiMessage() {
 }
 
 function processAiNaturalCommand(cmd) {
-  const c = cmd.toLowerCase();
+  const c = cmd.toLowerCase().trim();
 
-  // 45 Özellik için Tam Yapay Zeka Algılama Haritası (NLP Brain)
-  if (c.includes("analiz") || c.includes("probe") || c.includes("bilgi")) {
-    addAiMessage("🔍 Yapay Zeka: Video çözünürlüğü ve kodek yapısı analiz ediliyor...");
-    go('basic');
-  } else if (c.includes("15sn") || c.includes("klip kes") || c.includes("kırp")) {
-    addAiMessage("✂️ Yapay Zeka: Videonun ilk 15 saniyesi klip olarak kırpılıyor...");
+  // 15 Saniye Kesme Algılaması (Kes, Kırp, 15sn, 15 saniye, Kısalt)
+  if (c.includes("15") || c.includes("kes") || c.includes("kırp") || c.includes("kısalt") || c.includes("trim")) {
+    addAiMessage("✂️ Tamamdır! Videonun en tempolu ilk 15 saniyesini senin için hemen kırpıp klip yapıyorum...");
     go('trim');
+  } else if (c.includes("analiz") || c.includes("probe") || c.includes("bilgi")) {
+    addAiMessage("🔍 Hemen bakıyorum! Videonun çözünürlük, FPS ve detaylı kodek yapısını analiz ediyorum...");
+    go('basic');
   } else if (c.includes("birleştir")) {
-    addAiMessage("🔗 Yapay Zeka: Video birleştirme modülü çalıştırılıyor...");
+    addAiMessage("🔗 Hallediyorum! Videolarını kalite kaybı olmadan tek parça halinde birleştiriyorum...");
     go('concat');
-  } else if (c.includes("720p") || c.includes("hd yap") || c.includes("küçült")) {
-    addAiMessage("📐 Yapay Zeka: Video 720p HD çözünürlüğüne ölçekleniyor...");
+  } else if (c.includes("720p") || c.includes("hd") || c.includes("küçült")) {
+    addAiMessage("📐 Tamamdır! Videoyu 720p HD çözünürlüğüne getiriyorum...");
     go('720p');
   } else if (c.includes("yazı") || c.includes("altyazı") || c.includes("metin")) {
     const autoStyles = ["Neon Bounce #1", "Glitch Dynamic #12", "Typewriter Fast #45", "Cyberpunk Glowing #88", "Karaoke Pulse #120"];
@@ -1079,100 +1079,100 @@ function processAiNaturalCommand(cmd) {
     if (cmd.includes(":") || cmd.includes('"')) {
       textToApply = cmd.split(":")[1] || cmd.split('"')[1] || "caganx AI edit";
     }
-    addAiMessage(`🤖 Yapay Zeka otomatik stil seçti: <b>${chosenStyle}</b>. Metin videoya ekleniyor...`);
+    addAiMessage(`💬 Harika fikir! Sana özel trend <b>${chosenStyle}</b> animasyon stilini seçtim, metni yerleştiriyorum...`);
     applyDirectAiTextAnim(textToApply.trim(), chosenStyle);
-  } else if (c.includes("ses yükselt") || c.includes("sesi aç") || c.includes("200%")) {
-    addAiMessage("🔊 Yapay Zeka: Ses seviyesi 2 katına (200%) çıkarılıyor...");
+  } else if (c.includes("ses yükselt") || c.includes("sesi aç") || c.includes("200%") || c.includes("ses art")) {
+    addAiMessage("🔊 Hallediyorum kanka! Sesteki kısıklığı çözüp ses seviyesini 2 katına (200%) çıkarıyorum...");
     go('volume_up');
-  } else if (c.includes("hızlandır") || c.includes("2x") || c.includes("hızlı çekim")) {
-    addAiMessage("⚡ Yapay Zeka: Video 2x hızlı çekim moduna alınıyor...");
+  } else if (c.includes("hızlandır") || c.includes("2x") || c.includes("hızlı")) {
+    addAiMessage("⚡ Temposunu yükseltiyorum! Videoyu 2x hızlı çekim moduna alıyorum...");
     go('speed');
   } else if (c.includes("crop") || c.includes("ekran kes") || c.includes("odaklan")) {
-    addAiMessage("✂️ Yapay Zeka: Ekran kenarları kırpılarak odağa yakınlaşılıyor...");
+    addAiMessage("✂️ Anlaşıldı! Odaklanmak istediğin merkeze yakınlaşıp gereksiz kenarları kırpıyorum...");
     go('crop');
-  } else if (c.includes("parlaklık") || c.includes("renk") || c.includes("canlı yap")) {
-    addAiMessage("☀️ Yapay Zeka: Parlaklık ve renk doygunluğu artırılıyor...");
+  } else if (c.includes("parlaklık") || c.includes("renk") || c.includes("canlı")) {
+    addAiMessage("☀️ Renkleri patlatıyorum! Kontrast ve canlılık ayarlarını optimale getiriyorum...");
     go('bright');
   } else if (c.includes("gif")) {
-    addAiMessage("🎞️ Yapay Zeka: Videodan 4 saniyelik döngülü GIF üretiliyor...");
+    addAiMessage("🎞️ Süper! Videondan 4 saniyelik harika bir döngülü GIF oluşturuyorum...");
     go('gif');
   } else if (c.includes("fade") || c.includes("kararma") || c.includes("açılma")) {
-    addAiMessage("🌅 Yapay Zeka: Kararma ve açılma yumuşak geçiş efektleri uygulanıyor...");
+    addAiMessage("🌅 Yumuşak sinematik geçişler ekliyorum...");
     go('fade');
   } else if (c.includes("filigran") || c.includes("logo")) {
-    addAiMessage("🏷️ Yapay Zeka: Köşeye saydam logo filigranı ekleniyor...");
+    addAiMessage("🏷️ Marka logosunu yarı saydam filigran olarak ekliyorum...");
     go('watermark');
   } else if (c.includes("normalize") || c.includes("ses eşitle")) {
-    addAiMessage("🎚️ Yapay Zeka: Ses seviyeleri yayın standartlarında eşitleniyor...");
+    addAiMessage("🎚️ Sesteki patlamaları ve cızırtıları stüdyo seviyesinde eşitliyorum...");
     go('normalize');
   } else if (c.includes("pip") || c.includes("resim içinde resim")) {
-    addAiMessage("🖼️ Yapay Zeka: Resim İçinde Resim (PiP) çerçevesi uygulanıyor...");
+    addAiMessage("🖼️ Resim içinde resim (PiP) katmanını hazırlıyorum...");
     go('pip');
-  } else if (c.includes("döndür") || c.includes("90 derece") || c.includes("yan çekim")) {
-    addAiMessage("🔄 Yapay Zeka: Video 90° saat yönünde dik konuma getiriliyor...");
+  } else if (c.includes("döndür") || c.includes("90 derece") || c.includes("yan")) {
+    addAiMessage("🔄 Yan çekilen videoyu saat yönünde 90 derece dik konuma getiriyorum...");
     go('rotate90');
   } else if (c.includes("çerçeve") || c.includes("siyah sınır")) {
-    addAiMessage("🔲 Yapay Zeka: Estetik siyah dolgu çerçevesi ekleniyor...");
+    addAiMessage("🔲 Videoya estetik bir siyah çerçeve giydiriyorum...");
     go('border');
   } else if (c.includes("slow") || c.includes("yavaş") || c.includes("ağır çekim")) {
-    addAiMessage("🦥 Yapay Zeka: 0.5x Slow-Motion ağır çekim uygulanıyor...");
+    addAiMessage("🦥 Aksiyonu detaylandırmak için 0.5x Slow-Motion ağır çekim yapıyorum...");
     go('slow');
   } else if (c.includes("titreşim") || c.includes("sarsıntı") || c.includes("stabilize")) {
-    addAiMessage("⚓ Yapay Zeka: Video titreşim engelleyici çalıştırılıyor...");
+    addAiMessage("⚓ Kamera sarsıntılarını giderip pürüzsüz akış sağlıyorum...");
     go('stabilize');
   } else if (c.includes("blur") || c.includes("bulanık")) {
-    addAiMessage("🌫️ Yapay Zeka: Sinematik yumuşak bulanıklık uygulanıyor...");
+    addAiMessage("🌫️ Sinematik yumuşak bulanıklık dokusu uyguluyorum...");
     go('blur');
   } else if (c.includes("vintage") || c.includes("retro") || c.includes("nostalji")) {
-    addAiMessage("🎞️ Yapay Zeka: Vintage retro renk filtresi uygulanıyor...");
+    addAiMessage("🎞️ Nostaljik ve estetik sinematik retro renk tonlamaları veriyorum...");
     go('vintage');
   } else if (c.includes("ters") || c.includes("reverse") || c.includes("geriye")) {
-    addAiMessage("🔄 Yapay Zeka: Video ve ses tersine oynatılıyor...");
+    addAiMessage("🔄 Görüntüyü ve sesi sondan başa doğru ters hareket ettiriyorum...");
     go('reverse');
   } else if (c.includes("60 fps") || c.includes("akıcı")) {
-    addAiMessage("🚀 Yapay Zeka: 60 FPS akıcı kare interpolation uygulanıyor...");
+    addAiMessage("🚀 Yağ gibi akması için videonu 60 FPS akıcılığa çıkarıyorum...");
     go('interp');
   } else if (c.includes("ses dalga") || c.includes("frekans") || c.includes("görselleştir")) {
-    addAiMessage("📊 Yapay Zeka: Sese göre hareket eden frekans dalgaları üretiliyor...");
+    addAiMessage("📊 Müziğin ritmine göre hareket eden renkli ses dalgaları çiziyorum...");
     go('audioviz');
   } else if (c.includes("yeşil ekran") || c.includes("chroma")) {
-    addAiMessage("🟩 Yapay Zeka: Yeşil fon şeffaflaştırılıyor (Chroma Key)...");
+    addAiMessage("🟩 Yeşil fonu şeffaflaştırıp temizliyorum...");
     go('chroma');
   } else if (c.includes("zoom") || c.includes("yakınlaş")) {
-    addAiMessage("🔍 Yapay Zeka: Merkeze yumuşak yakınlaşma efekti veriliyor...");
+    addAiMessage("🔍 Merkeze yumuşak bir odak yakınlaşması veriyorum...");
     go('zoom');
   } else if (c.includes("tiktok") || c.includes("dikey") || c.includes("9:16") || c.includes("blur fill")) {
-    addAiMessage("📱 Yapay Zeka: 1080x1920 Dikey Blur Fill 9:16 formatına dönüştürülüyor...");
+    addAiMessage("📱 Videonu TikTok/Reels algoritmasına uygun 9:16 dikey Blur Fill yapıyorum...");
     go('blur_fill');
   } else if (c.includes("split") || c.includes("bölünmüş") || c.includes("oyun/kamera")) {
-    addAiMessage("🎮 Yapay Zeka: Split Screen bölünmüş ekran modülü uygulanıyor...");
+    addAiMessage("🎮 Ekranı ikiye bölerek oyun ve kamera düzenine alıyorum...");
     go('splitscreen');
   } else if (c.includes("shorts")) {
-    addAiMessage("⚡ Yapay Zeka: 60 saniye YouTube Shorts formatı uygulanıyor...");
+    addAiMessage("⚡ YouTube Shorts için 60 saniyelik dik formata getiriyorum...");
     go('shorts');
   } else if (c.includes("reels") || c.includes("instagram")) {
-    addAiMessage("📸 Yapay Zeka: Instagram Reels yüksek kalite preset uygulanıyor...");
+    addAiMessage("📸 Instagram Reels algoritmasına tam uyumlu yüksek kalite çıktı veriyorum...");
     go('reels');
   } else if (c.includes("hook") || c.includes("dikkat çekici başlık")) {
-    addAiMessage("🪝 Yapay Zeka: İlk 3 saniyeye büyük viral hook başlığı yerleştiriliyor...");
+    addAiMessage("🪝 İlk 3 saniyeye izleyiciyi ekrana kilitleyecek sarı/siyah viral başlık koyuyorum...");
     go('hook_presets');
-  } else if (c.includes("sessizlik") || c.includes("nefes") || c.includes("boşluk kes")) {
-    addAiMessage("✂️ Yapay Zeka: Sesteki nefes ve duraksama boşlukları temizleniyor...");
+  } else if (c.includes("sessizlik") || c.includes("nefes") || c.includes("boşluk")) {
+    addAiMessage("✂️ Konuşma aralarındaki tüm duraksama ve nefes boşluklarını otomatik kesip tempoyu uçuruyorum...");
     go('silence_cut');
   } else if (c.includes("kapak") || c.includes("thumbnail")) {
-    addAiMessage("🖼️ Yapay Zeka: Videodan yüksek çözünürlüklü kapak resmi (.jpg) çıkarılıyor...");
+    addAiMessage("🖼️ Videonun en şık anından yüksek çözünürlüklü kapak resmi (.jpg) çıkarıyorum...");
     go('thumbnail');
   } else if (c.includes("zirve") || c.includes("en heyecanlı")) {
-    addAiMessage("🔥 Yapay Zeka: Sesteki en heyecanlı 30 saniyelik klip oluşturuluyor...");
+    addAiMessage("🔥 Sesteki en heyecanlı ve yüksek enerjili 30 saniyelik klipsi yakalıyorum...");
     go('audio_highlight');
   } else if (c.includes("çift format") || c.includes("hem dikey hem kare")) {
-    addAiMessage("📦 Yapay Zeka: Tek tıkla hem Dikey (9:16) hem Kare (1:1) Çıktı üretiliyor...");
+    addAiMessage("📦 Tek işlemle hem Dikey (9:16) hem Kare (1:1) iki ayrı video hazırlıyorum...");
     go('dual_export');
   } else if (c.includes("sihirli") || c.includes("viral") || c.includes("otomatik edit")) {
-    addAiMessage("✨ Yapay Zeka: **AI Sihirli Dokunuş** çalıştırılıyor (Sessizlik kesme + Loudnorm + Blur Fill + Canlı Renk)...");
+    addAiMessage("✨ **Sihirli Dokunuş**: Sessizlikleri kesiyorum + Sesi eşitliyorum + Dikey Blur Fill yapıp renkleri canlandırıyorum...");
     go('magic_viral');
   } else {
-    addAiMessage("🤖 Komut anlaşıldı! Yapay Zeka zekasıyla videoyu analiz edip en uygun **Sihirli Dokunuş Otomasyonunu** başlatıyor...");
+    addAiMessage("🤖 Ne yapmak istediğini tam anladım! Senin için en ideal düzenlemeyi doğrudan başlatıyorum...");
     go('magic_viral');
   }
 }
