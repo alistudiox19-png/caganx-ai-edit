@@ -799,21 +799,8 @@ async function go(action) {
         if (outUrl && outUrl.startsWith("/")) {
           outUrl = getBackendUrl(outUrl);
         }
-        dla.href = outUrl;
-        dla.download = "caganx_" + action + "_" + file.name;
-        dl.style.display = "block";
         
-        const vp = document.getElementById("vplayer");
-        const vo = document.getElementById("vorig");
-        const cmp = document.getElementById("compare-wrap");
-        if (vp) {
-          vp.src = outUrl;
-          if (vo && origUrl) vo.src = origUrl;
-          if (cmp) cmp.style.display = "block";
-          applyVisualEffects(action, customText);
-          vp.play().catch(()=>{});
-          if (vo) vo.play().catch(()=>{});
-        }
+        showBeforeAfterVideo(outUrl, action, customText);
 
         if (d.download2) {
           dla2.href = d.download2;
@@ -822,7 +809,6 @@ async function go(action) {
         }
         saveHist({ act: action, name: file.name, url: outUrl });
         popConfetti();
-        dl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         const chk = document.getElementById("chkAutoDl");
         if (chk && chk.checked) {
@@ -837,25 +823,9 @@ async function go(action) {
   if (!backendSuccess) {
     clearInterval(progInterval);
     msg("🎉 %100 İşlem Başarıyla Tamamlandı! (Vercel Engine) - " + action, 0, "ok", 100);
-    dla.href = origUrl;
-    dla.download = "caganx_" + action + "_" + file.name;
-    dl.style.display = "block";
-
-    const vp = document.getElementById("vplayer");
-    const vo = document.getElementById("vorig");
-    const cmp = document.getElementById("compare-wrap");
-    if (vp && origUrl) {
-      vp.src = origUrl;
-      if (vo) vo.src = origUrl;
-      if (cmp) cmp.style.display = "block";
-      applyVisualEffects(action, customText);
-      vp.play().catch(()=>{});
-      if (vo) vo.play().catch(()=>{});
-    }
-
+    showBeforeAfterVideo(origUrl, action, customText);
     saveHist({ act: action + " (Web FFmpeg)", name: file.name, url: origUrl });
     popConfetti();
-    dl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     const chk = document.getElementById("chkAutoDl");
     if (chk && chk.checked) {
