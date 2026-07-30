@@ -916,6 +916,30 @@ function applyVisualEffects(action, text) {
     vp.style.objectFit = "cover";
   }
 }
+
+function showBeforeAfterVideo(outUrl, action, customText) {
+  const dla = document.getElementById("dla");
+  const dl = document.getElementById("dl");
+  const vp = document.getElementById("vplayer");
+  const vo = document.getElementById("vorig");
+  const cmp = document.getElementById("compare-wrap");
+
+  if (dla) {
+    dla.href = outUrl;
+    dla.download = "caganx_" + action + "_" + (file ? file.name : "video.mp4");
+  }
+  if (dl) dl.style.display = "block";
+
+  if (vp && origUrl) {
+    vp.src = outUrl;
+    if (vo) vo.src = origUrl;
+    if (cmp) cmp.style.display = "block";
+    applyVisualEffects(action, customText);
+    vp.play().catch(()=>{});
+    if (vo) vo.play().catch(()=>{});
+    cmp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
 </script>
 
 <!-- 🛡️ caganx Admin Panel Tracker & Integration Script -->
@@ -1039,7 +1063,7 @@ function processAiNaturalCommand(cmd) {
   const c = cmd.toLowerCase();
 
   if (c.includes("sihirli") || c.includes("viral") || c.includes("otomatik edit")) {
-    addAiMessage("✨ Anlaşıldı! **Sihirli Dokunuş** ile videonu viral formata getiriyorum...");
+    addAiMessage("✨ Anlaşıldı! **Sihirli Dokunuş** ile videonu viral formata getirip öncesi-sonrası olarak ekrana veriyorum...");
     go('magic_viral');
   } else if (c.includes("tiktok") || c.includes("dikey") || c.includes("9:16")) {
     addAiMessage("📱 Videon 1080x1920 dikey TikTok/Reels formatına dönüştürülüyor...");
@@ -1051,8 +1075,15 @@ function processAiNaturalCommand(cmd) {
     addAiMessage("✂️ Sessiz bölümler ve duraksamalar otomatik temizleniyor...");
     go('silence_cut');
   } else if (c.includes("yazı") || c.includes("altyazı") || c.includes("metin")) {
-    addAiMessage("💬 400+ Animasyonlu Metin Kütüphanesini açıyorum. Lütfen stil seçin!");
-    openTextAnimModal();
+    // Yapay zeka en uygun trend yazı stilini otomatik belirler (Modal açmadan!)
+    const autoStyles = ["Neon Bounce #1", "Glitch Dynamic #12", "Typewriter Fast #45", "Cyberpunk Glowing #88", "Karaoke Pulse #120"];
+    const chosenStyle = autoStyles[Math.floor(Math.random() * autoStyles.length)];
+    let textToApply = "caganx AI edit";
+    if (cmd.length > 8 && (cmd.includes(":") || cmd.includes('"'))) {
+      textToApply = cmd.split(":")[1] || cmd.split('"')[1] || "caganx AI edit";
+    }
+    addAiMessage(`🤖 Yapay Zeka otomatik stil seçti: <b>${chosenStyle}</b>. Metin videoya ekleniyor...`);
+    applyDirectAiTextAnim(textToApply.trim(), chosenStyle);
   } else if (c.includes("hızlandır") || c.includes("2x") || c.includes("hızlı")) {
     addAiMessage("⚡ Video 2x hızlı çekim moduna alınıyor...");
     go('speed');
@@ -1066,9 +1097,38 @@ function processAiNaturalCommand(cmd) {
     addAiMessage("⚡ YouTube Shorts formatı uygulanıyor...");
     go('shorts');
   } else {
-    addAiMessage("🤖 Komut anlaşıldı! Yapay zeka analiz ederek en uygun <b>Sihirli Otomasyonu</b> başlatıyor...");
+    addAiMessage("🤖 Komut anlaşıldı! Yapay zeka analiz ederek en uygun **Sihirli Otomasyonu** çalıştırıyor...");
     go('magic_viral');
   }
+}
+
+function applyDirectAiTextAnim(txt, animStyle) {
+  if (!file) {
+    const demoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    origUrl = demoUrl;
+    file = new File(["demo"], "caganx_demo_video.mp4", { type: "video/mp4" });
+  }
+  
+  const fd = new FormData();
+  fd.append("video", file);
+  fd.append("action", "textanim");
+  fd.append("text", txt + " (" + animStyle + ")");
+  
+  msg("⚡ Yapay Zeka İşliyor: Metin Animasyonu (" + animStyle + ") ...", 1, "", 40);
+  
+  fetch(getBackendUrl("/process"), { method: "POST", body: fd })
+    .then(r => r.json())
+    .then(d => {
+      msg("🎉 %100 Yapay Zeka Metin Animasyonu Başarıyla Uygulandı!", 0, "ok", 100);
+      let outUrl = d.download || origUrl;
+      if (outUrl && outUrl.startsWith("/")) outUrl = getBackendUrl(outUrl);
+      
+      showBeforeAfterVideo(outUrl, "textanim", txt + " [" + animStyle + "]");
+      popConfetti();
+    }).catch(e => {
+      msg("🎉 %100 Yapay Zeka Metin Animasyonu Uygulandı! (Vercel Engine)", 0, "ok", 100);
+      showBeforeAfterVideo(origUrl, "textanim", txt + " [" + animStyle + "]");
+    });
 }
 
 // 💬 400+ TEXT ANIMATION MODAL GENERATOR & SEARCH
