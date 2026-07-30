@@ -714,10 +714,24 @@ async function go(action) {
 
   let backendSuccess = false;
   try {
+    // Render ücretsiz plan uyku modundan uyandırma (wake-up ping)
+    msg("⏳ Bulut sunucusu hazırlanıyor...", 1, "", currentPct);
+    try { await fetch(getBackendUrl("/"), {method:"GET", signal: AbortSignal.timeout(8000)}); } catch(e){}
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
     const processUrl = getBackendUrl("/process");
-    const r = await fetch(processUrl, { method: "POST", body: fd, signal: controller.signal });
+    msg("⚡ FFmpeg İşleniyor: " + action + " ...", 1, "", currentPct);
+    let r = await fetch(processUrl, { method: "POST", body: fd, signal: controller.signal });
+    // Retry bir kez daha dene (Render uyandıysa ikincide başarır)
+    if (!r.ok) {
+      await new Promise(res => setTimeout(res, 3000));
+      const fd2 = new FormData();
+      fd2.append("video", file);
+      fd2.append("action", action);
+      if (customText) fd2.append("text", customText);
+      r = await fetch(processUrl, { method: "POST", body: fd2 });
+    }
     clearTimeout(timeoutId);
     if (r.ok) {
       const d = await r.json();
