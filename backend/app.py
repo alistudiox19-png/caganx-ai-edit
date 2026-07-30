@@ -261,6 +261,157 @@ def build_cmd(action, inp, out, text="caganx"):
     return c + ["-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
 
+# ═══════════════════════════════════════════════
+# GERÇEK ZAMANLI ANALİTİK & ADMIN PANELİ API
+# ═══════════════════════════════════════════════
+import sqlite3 as _sql
+import time as _time
+
+ANALYTICS_DB = Path(tempfile.gettempdir()) / "caganx_analytics.db"
+
+def _init_analytics():
+    conn = _sql.connect(str(ANALYTICS_DB))
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS sessions (
+        sid TEXT PRIMARY KEY, ip TEXT, ua TEXT, page TEXT,
+        first_seen REAL, last_seen REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, sid TEXT, username TEXT,
+        ip TEXT, action TEXT, details TEXT, ts REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS errors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, ip TEXT, page TEXT,
+        msg TEXT, stack TEXT, ts REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS bans (
+        ip TEXT PRIMARY KEY, reason TEXT, ts REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY, val TEXT)''')
+    c.execute("INSERT OR IGNORE INTO settings VALUES ('maintenance','0')")
+    c.execute("INSERT OR IGNORE INTO settings VALUES ('announcement','')")
+    conn.commit(); conn.close()
+
+_init_analytics()
+
+def _adb():
+    conn = _sql.connect(str(ANALYTICS_DB))
+    conn.row_factory = _sql.Row
+    return conn
+
+# --- Heartbeat Ping (siteden her 5 saniyede gelir) ---
+@app.route("/api/ping", methods=["POST"])
+def api_ping():
+    d = request.json or {}
+    sid = d.get("session_id", request.remote_addr)
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr).split(",")[0].strip()
+    ua = request.headers.get("User-Agent", "?")[:200]
+    page = d.get("page", "/")
+    now = _time.time()
+    conn = _adb(); c = conn.cursor()
+    # Ban kontrol
+    c.execute("SELECT ip FROM bans WHERE ip=?", (ip,))
+    if c.fetchone():
+        conn.close()
+        return jsonify({"status":"banned","message":"Erişiminiz engellenmiştir."}), 403
+    c.execute("SELECT sid FROM sessions WHERE sid=?", (sid,))
+    if c.fetchone():
+        c.execute("UPDATE sessions SET last_seen=?,page=?,ip=? WHERE sid=?", (now,page,ip,sid))
+    else:
+        c.execute("INSERT INTO sessions VALUES(?,?,?,?,?,?)", (sid,ip,ua,page,now,now))
+        c.execute("INSERT INTO logs(sid,username,ip,action,details,ts) VALUES(?,?,?,?,?,?)",
+                  (sid,"Misafir",ip,"Siteye Giriş",page,now))
+    c.execute("SELECT key,val FROM settings")
+    sets = {r["key"]:r["val"] for r in c.fetchall()}
+    conn.commit(); conn.close()
+    return jsonify({"status":"ok",
+                    "maintenance": sets.get("maintenance","0")=="1",
+                    "announcement": sets.get("announcement","")})
+
+# --- Aksiyon Logu ---
+@app.route("/api/log_activity", methods=["POST"])
+def api_log_activity():
+    d = request.json or {}
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr).split(",")[0].strip()
+    conn = _adb()
+    conn.execute("INSERT INTO logs(sid,username,ip,action,details,ts) VALUES(?,?,?,?,?,?)",
+                 (d.get("session_id",""), d.get("username","Misafir"), ip,
+                  d.get("action",""), d.get("details",""), _time.time()))
+    conn.commit(); conn.close()
+    return jsonify({"status":"ok"})
+
+# --- Hata Logu ---
+@app.route("/api/log_error", methods=["POST"])
+def api_log_error():
+    d = request.json or {}
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr).split(",")[0].strip()
+    conn = _adb()
+    conn.execute("INSERT INTO errors(ip,page,msg,stack,ts) VALUES(?,?,?,?,?)",
+                 (ip, d.get("page",""), d.get("error",""), d.get("stack",""), _time.time()))
+    conn.commit(); conn.close()
+    return jsonify({"status":"ok"})
+
+# --- Admin İstatistik API (admin panel bunu çeker) ---
+@app.route("/api/admin/stats", methods=["GET"])
+def api_admin_stats():
+    conn = _adb(); c = conn.cursor()
+    now = _time.time()
+    # Eski oturumları temizle (60s inaktif)
+    c.execute("DELETE FROM sessions WHERE last_seen < ?", (now-60,))
+    conn.commit()
+    c.execute("SELECT COUNT(*) FROM sessions"); active = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM logs WHERE ts>=?", (now-86400,)); today = c.fetchone()[0]
+    c.execute("SELECT COUNT(DISTINCT ip) FROM logs"); total = c.fetchone()[0]
+    c.execute("SELECT sid,ip,ua,page,last_seen FROM sessions ORDER BY last_seen DESC LIMIT 20")
+    active_list = [dict(r) for r in c.fetchall()]
+    c.execute("SELECT sid,username,ip,action,details,ts FROM logs ORDER BY id DESC LIMIT 30")
+    recent = [dict(r) for r in c.fetchall()]
+    c.execute("SELECT ip,page,msg,ts FROM errors ORDER BY id DESC LIMIT 20")
+    errs = [dict(r) for r in c.fetchall()]
+    c.execute("SELECT ip,reason,ts FROM bans"); bans = [dict(r) for r in c.fetchall()]
+    c.execute("SELECT key,val FROM settings"); sets = {r["key"]:r["val"] for r in c.fetchall()}
+    conn.close()
+    return jsonify({"active":active,"today":today,"total":total,
+                    "active_list":active_list,"logs":recent,"errors":errs,
+                    "bans":bans,"settings":sets})
+
+# --- Admin: Bakım Modu ---
+@app.route("/api/admin/toggle_maintenance", methods=["POST"])
+def api_toggle_maint():
+    d = request.json or {}
+    val = "1" if d.get("maintenance") else "0"
+    conn = _adb()
+    conn.execute("INSERT OR REPLACE INTO settings VALUES('maintenance',?)", (val,))
+    conn.commit(); conn.close()
+    return jsonify({"status":"ok","maintenance": val=="1"})
+
+# --- Admin: Duyuru ---
+@app.route("/api/admin/set_announcement", methods=["POST"])
+def api_set_ann():
+    d = request.json or {}
+    conn = _adb()
+    conn.execute("INSERT OR REPLACE INTO settings VALUES('announcement',?)", (d.get("text",""),))
+    conn.commit(); conn.close()
+    return jsonify({"status":"ok"})
+
+# --- Admin: Ban ---
+@app.route("/api/admin/ban_ip", methods=["POST"])
+def api_ban():
+    d = request.json or {}
+    ip = d.get("ip","").strip()
+    if not ip: return jsonify({"status":"error"}), 400
+    conn = _adb()
+    conn.execute("INSERT OR REPLACE INTO bans VALUES(?,?,?)", (ip, d.get("reason","Kural ihlali"), _time.time()))
+    conn.commit(); conn.close()
+    return jsonify({"status":"ok"})
+
+@app.route("/api/admin/unban_ip", methods=["POST"])
+def api_unban():
+    d = request.json or {}
+    conn = _adb()
+    conn.execute("DELETE FROM bans WHERE ip=?", (d.get("ip",""),))
+    conn.commit(); conn.close()
+    return jsonify({"status":"ok"})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
