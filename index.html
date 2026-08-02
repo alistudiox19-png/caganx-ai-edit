@@ -267,8 +267,15 @@ footer{text-align:center;padding:16px;color:var(--m);font-size:.8rem;border-top:
   </div>
   <div id="ai-chat-messages" style="flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;font-size:0.88rem;background:#09090b;">
     <div style="background:#18181c;color:#f4f4f5;padding:10px 14px;border-radius:12px;border-top-left-radius:2px;max-width:85%;line-height:1.4;">
-      👋 Merhaba! Ben caganx AI Editor. Bana ne yapmak istediğini söyle, videonu senin için anında editleyeyim!<br><br><i>Örnek: "Videoyu TikTok dikey yap", "15sn kes", "Sessizlikleri temizle", "Yazı ekle: Merhaba"</i>
+      👋 Merhaba! Ben caganx AI Editor. Bana ne yapmak istediğini yaz veya aşağıdaki hızlı seçeneklere tıkla, senin için anında halledeyim!<br><br><i>Örnek: "Videoyu TikTok dikey yap", "15sn kes", "Sessizlikleri temizle", "Yazı ekle: Merhaba"</i>
     </div>
+  </div>
+  <div style="padding:6px 12px;background:#0d0d10;border-top:1px solid #27272a;display:flex;gap:6px;overflow-x:auto;white-space:nowrap;">
+    <button onclick="sendQuickAiCmd('✨ Sihirli Viral Dokunuş yap')" style="background:#1e1b4b;color:#c4b5fd;border:1px solid #4338ca;padding:4px 10px;border-radius:99px;font-size:0.75rem;cursor:pointer;font-weight:600;">✨ Sihirli Dokunuş</button>
+    <button onclick="sendQuickAiCmd('📱 TikTok Dikey Blur Fill yap')" style="background:#064e3b;color:#6ee7b7;border:1px solid #047857;padding:4px 10px;border-radius:99px;font-size:0.75rem;cursor:pointer;font-weight:600;">📱 TikTok Dikey</button>
+    <button onclick="sendQuickAiCmd('✂️ 15 saniye kes')" style="background:#831843;color:#fbcfe8;border:1px solid #be185d;padding:4px 10px;border-radius:99px;font-size:0.75rem;cursor:pointer;font-weight:600;">✂️ 15sn Kes</button>
+    <button onclick="sendQuickAiCmd('🔊 Sesi %200 yükselt')" style="background:#701a75;color:#f5d0fe;border:1px solid #a21caf;padding:4px 10px;border-radius:99px;font-size:0.75rem;cursor:pointer;font-weight:600;">🔊 Sesi Yükselt</button>
+    <button onclick="sendQuickAiCmd('💬 Yazı ekle: caganx AI edit')" style="background:#312e81;color:#a5b4fc;border:1px solid #4f46e5;padding:4px 10px;border-radius:99px;font-size:0.75rem;cursor:pointer;font-weight:600;">💬 Yazı Ekle</button>
   </div>
   <div style="padding:12px;background:#121215;border-top:1px solid #27272a;display:flex;gap:8px;">
     <input type="text" id="ai-chat-input" placeholder="AI'ya komut ver..." onkeypress="if(event.key==='Enter') sendAiMessage()" style="flex:1;background:#18181c;border:1px solid #27272a;border-radius:10px;padding:10px 14px;color:#fff;font-size:0.88rem;outline:none;" />
@@ -1021,6 +1028,13 @@ function sendAiMessage() {
   addAiMessage(txt, true);
   inp.value = "";
 
+  setTimeout(() => {
+    processAiNaturalCommand(txt);
+  }, 400);
+}
+
+function sendQuickAiCmd(txt) {
+  addAiMessage(txt, true);
   setTimeout(() => {
     processAiNaturalCommand(txt);
   }, 400);
