@@ -1074,10 +1074,39 @@ function sendQuickAiCmd(txt) {
   }, 400);
 }
 
-function processAiNaturalCommand(cmd) {
+async function processAiNaturalCommand(cmd) {
   const c = cmd.toLowerCase().trim();
 
-  // 15 Saniye Kesme Algılaması (Kes, Kırp, 15sn, 15 saniye, Kısalt)
+  // 🤖 1. Öncelik: Gemini AI API Entegrasyonu (Render Backend üzerinden)
+  try {
+    const chatUrl = getBackendUrl("/api/chat");
+    const r = await fetch(chatUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: cmd }),
+      signal: AbortSignal.timeout(6000)
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.status === "success" && d.reply) {
+        addAiMessage(d.reply);
+        if (d.action && d.action !== "none") {
+          setTimeout(() => {
+            if (d.action === "text" || d.action === "textanim") {
+              applyDirectAiTextAnim(d.custom_text || "caganx AI edit", "Gemini AI Style");
+            } else {
+              go(d.action);
+            }
+          }, 300);
+        }
+        return; // Gemini AI başarıyla yanıtladı, çıkıyoruz
+      }
+    }
+  } catch(err) {
+    console.log("Gemini API fallback to Local AI Engine:", err);
+  }
+
+  // 🤖 2. Öncelik: Yerel Hızlı NLP Motoru (Fallback - İnternet/Sunucu Yavaşsa Kesintisiz Çalışır)
   if (c.includes("15") || c.includes("kes") || c.includes("kırp") || c.includes("kısalt") || c.includes("trim")) {
     addAiMessage("✂️ Tamamdır! Videonun en tempolu ilk 15 saniyesini senin için hemen kırpıp klip yapıyorum...");
     go('trim');
