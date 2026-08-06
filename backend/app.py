@@ -237,8 +237,12 @@ def build_cmd(action, inp, out, text="caganx"):
         return c + ["-vf", "fade=t=in:st=0:d=1.2,fade=t=out:st=8:d=1.5", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
     if action in ("remove_watermark", "clean_watermark", "logo_clean"):
-        # AI üretimi videolardaki sağ/sol alt filigranı delogo filtresiyle siler
-        return c + ["-vf", "delogo=x=w-230:y=h-90:w=220:h=80:show=0", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
+        # AI üretimi videolardaki (Runway, Sora, Pika, Kling) köşe filigranlarını delogo ile siler
+        return c + ["-filter_complex",
+                    "[0:v]delogo=x=main_w-240:y=main_h-100:w=230:h=90:show=0[v1];"
+                    "[v1]delogo=x=10:y=main_h-100:w=220:h=90:show=0[v2];"
+                    "[v2]delogo=x=main_w-240:y=10:w=230:h=90:show=0[vout]",
+                    "-map", "[vout]", "-map", "0:a?", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
     if action in ("watermark", "filigran"):
         return c + ["-vf", "drawtext=text='caganx':fontsize=22:fontcolor=white@0.55:x=w-tw-15:y=h-th-15",

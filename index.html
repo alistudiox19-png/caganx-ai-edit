@@ -900,6 +900,7 @@ function applyVisualEffects(action, text) {
   if (action === "vintage") vp.style.filter = "sepia(0.6) contrast(1.15) hue-rotate(-15deg)";
   if (action === "blur") vp.style.filter = "blur(5px)";
   if (action === "border") vp.style.border = "8px solid #000";
+  if (action === "remove_watermark") vp.style.filter = "contrast(1.05) saturate(1.05)";
   if (action === "magic_viral") {
     vp.style.filter = "brightness(1.08) contrast(1.18) saturate(1.25)";
     if (hook) { hook.textContent = "✨ SİHİRLİ VİRAL DOKUNUŞ"; hook.style.display = "block"; }
