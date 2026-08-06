@@ -20,15 +20,9 @@ import json
 import urllib.request
 import urllib.error
 
-# Dynamic key reconstruction to avoid GitHub Secret Protection false alarms in commits
-_k1 = "AQ.Ab8RN6K06NVyNRn"
-_k2 = "IanTou3liWVG5qOBD"
-_k3 = "3IciyGiRCrQyJpFZA"
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", _k1 + _k2 + _k3)
-
 @app.route("/")
 def index():
-    return jsonify({"status": "ok", "service": "caganx AI edit - FFmpeg Cloud Backend", "features": 45, "gemini": bool(GEMINI_API_KEY)})
+    return jsonify({"status": "ok", "service": "caganx AI edit - FFmpeg Cloud Backend", "features": 45})
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
@@ -88,41 +82,10 @@ Yanıtını SADECE geçerli bir JSON objesi olarak ver. Başka hiçbir açıklam
   "custom_text": "varsa_videoya_yazılacak_metin"
 }"""
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {"text": system_instruction + "\n\nKullanıcı Mesajı: " + user_msg}
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "responseMimeType": "application/json"
-        }
-    }
-
-    try:
-        req_data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(url, data=req_data, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=12) as response:
-            res_body = json.loads(response.read().decode("utf-8"))
-            raw_text = res_body["candidates"][0]["content"]["parts"][0]["text"]
-            parsed = json.loads(raw_text)
-            return jsonify({
-                "status": "success",
-                "reply": parsed.get("reply", "Hallediyorum!"),
-                "action": parsed.get("action", "magic_viral"),
-                "custom_text": parsed.get("custom_text", "")
-            })
-    except Exception as e:
-        # Fallback to local smart processing if Gemini API call fails or times out
-        return jsonify({
-            "status": "fallback",
-            "error": str(e)
-        })
+    return jsonify({
+        "status": "fallback",
+        "info": "Local AI Engine Active"
+    })
 
 @app.route("/process", methods=["POST"])
 def process():

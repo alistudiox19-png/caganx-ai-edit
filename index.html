@@ -765,7 +765,7 @@ async function go(action) {
     window.caganxLogAction("Özellik Çalıştırıldı: " + action, file ? file.name : "Örnek Video");
   }
   if (!file) {
-    const demoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    const demoUrl = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
     origUrl = demoUrl;
     file = new File(["demo"], "caganx_demo_video.mp4", { type: "video/mp4" });
     const zt = document.getElementById("zt");
@@ -1077,36 +1077,13 @@ function sendQuickAiCmd(txt) {
 async function processAiNaturalCommand(cmd) {
   const c = cmd.toLowerCase().trim();
 
-  // 🤖 1. Öncelik: Gemini AI API Entegrasyonu (Render Backend üzerinden)
-  try {
-    const chatUrl = getBackendUrl("/api/chat");
-    const r = await fetch(chatUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: cmd }),
-      signal: AbortSignal.timeout(6000)
-    });
-    if (r.ok) {
-      const d = await r.json();
-      if (d.status === "success" && d.reply) {
-        addAiMessage(d.reply);
-        if (d.action && d.action !== "none") {
-          setTimeout(() => {
-            if (d.action === "text" || d.action === "textanim") {
-              applyDirectAiTextAnim(d.custom_text || "caganx AI edit", "Gemini AI Style");
-            } else {
-              go(d.action);
-            }
-          }, 300);
-        }
-        return; // Gemini AI başarıyla yanıtladı, çıkıyoruz
-      }
-    }
-  } catch(err) {
-    console.log("Gemini API fallback to Local AI Engine:", err);
+  // 💬 Selamlaşma ve Sohbet Mesajları (Video Düzenlemeyi Tetiklemez!)
+  if (c === "merhaba" || c === "selam" || c === "hey" || c === "nasılsın" || c === "merhabalar" || c === "günaydın" || c === "iyi günler" || c === "sa" || c.startsWith("merhaba") || c.startsWith("selam")) {
+    addAiMessage("👋 Merhaba! Ben caganx AI Editor. Size video düzenleme konusunda nasıl yardımcı olabilirim? 🎬<br><br>Bana ne yapmak istediğinizi söyleyin (Örn: <i>'15sn kes'</i>, <i>'Sesi yükselt'</i>, <i>'TikTok dikey yap'</i>, <i>'Sessizlikleri temizle'</i>).");
+    return;
   }
 
-  // 🤖 2. Öncelik: Yerel Hızlı NLP Motoru (Fallback - İnternet/Sunucu Yavaşsa Kesintisiz Çalışır)
+  // 🤖 1. Öncelik: Yerel Hızlı NLP Motoru (Fallback - İnternet/Sunucu Yavaşsa Kesintisiz Çalışır)
   if (c.includes("15") || c.includes("kes") || c.includes("kırp") || c.includes("kısalt") || c.includes("trim")) {
     addAiMessage("✂️ Tamamdır! Videonun en tempolu ilk 15 saniyesini senin için hemen kırpıp klip yapıyorum...");
     go('trim');
@@ -1226,7 +1203,7 @@ async function processAiNaturalCommand(cmd) {
 
 function applyDirectAiTextAnim(txt, animStyle) {
   if (!file) {
-    const demoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    const demoUrl = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
     origUrl = demoUrl;
     file = new File(["demo"], "caganx_demo_video.mp4", { type: "video/mp4" });
   }
