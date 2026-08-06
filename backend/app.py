@@ -22,7 +22,7 @@ import urllib.error
 
 @app.route("/")
 def index():
-    return jsonify({"status": "ok", "service": "caganx AI edit - FFmpeg Cloud Backend", "features": 45})
+    return jsonify({"status": "ok", "service": "caganx AI edit - FFmpeg Cloud Backend", "features": 46})
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
@@ -235,6 +235,10 @@ def build_cmd(action, inp, out, text="caganx"):
 
     if action == "fade":
         return c + ["-vf", "fade=t=in:st=0:d=1.2,fade=t=out:st=8:d=1.5", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
+
+    if action in ("remove_watermark", "clean_watermark", "logo_clean"):
+        # AI üretimi videolardaki sağ/sol alt filigranı delogo filtresiyle siler
+        return c + ["-vf", "delogo=x=w-230:y=h-90:w=220:h=80:show=0", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
     if action in ("watermark", "filigran"):
         return c + ["-vf", "drawtext=text='caganx':fontsize=22:fontcolor=white@0.55:x=w-tw-15:y=h-th-15",
