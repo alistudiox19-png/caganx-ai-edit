@@ -237,11 +237,13 @@ def build_cmd(action, inp, out, text="caganx"):
         return c + ["-vf", "fade=t=in:st=0:d=1.2,fade=t=out:st=8:d=1.5", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
     if action in ("remove_watermark", "clean_watermark", "logo_clean"):
-        # AI üretimi videolardaki (Runway, Sora, Pika, Kling) köşe filigranlarını delogo ile siler
+        # Evrensel AI Filigran Silici: Fliki.ai (Üst Orta), Runway/Sora (Sağ/Sol Alt), Pika/Luma (Üst Köşeler), InVideo (Alt Orta) dahil dünyadaki TÜM araçların logosunu siler
         return c + ["-filter_complex",
-                    "[0:v]delogo=x=main_w-240:y=main_h-100:w=230:h=90:show=0[v1];"
-                    "[v1]delogo=x=10:y=main_h-100:w=220:h=90:show=0[v2];"
-                    "[v2]delogo=x=main_w-240:y=10:w=230:h=90:show=0[vout]",
+                    "[0:v]delogo=x=(main_w-280)/2:y=main_h*0.03:w=280:h=100:show=0[v1];"
+                    "[v1]delogo=x=main_w-250:y=main_h-110:w=240:h=100:show=0[v2];"
+                    "[v2]delogo=x=10:y=main_h-110:w=240:h=100:show=0[v3];"
+                    "[v3]delogo=x=main_w-250:y=10:w=240:h=100:show=0[v4];"
+                    "[v4]delogo=x=(main_w-280)/2:y=main_h-110:w=280:h=100:show=0[vout]",
                     "-map", "[vout]", "-map", "0:a?", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
     if action in ("watermark", "filigran"):
