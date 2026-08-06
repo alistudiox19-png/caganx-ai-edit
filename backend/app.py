@@ -237,13 +237,36 @@ def build_cmd(action, inp, out, text="caganx"):
         return c + ["-vf", "fade=t=in:st=0:d=1.2,fade=t=out:st=8:d=1.5", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
     if action in ("remove_watermark", "clean_watermark", "logo_clean"):
-        # Evrensel AI Filigran Silici: Fliki.ai (Üst Orta), Runway/Sora (Sağ/Sol Alt), Pika/Luma (Üst Köşeler), InVideo (Alt Orta) dahil dünyadaki TÜM araçların logosunu siler
-        return c + ["-filter_complex",
-                    "[0:v]delogo=x=(main_w-280)/2:y=main_h*0.03:w=280:h=100:show=0[v1];"
-                    "[v1]delogo=x=main_w-250:y=main_h-110:w=240:h=100:show=0[v2];"
-                    "[v2]delogo=x=10:y=main_h-110:w=240:h=100:show=0[v3];"
-                    "[v3]delogo=x=main_w-250:y=10:w=240:h=100:show=0[v4];"
-                    "[v4]delogo=x=(main_w-280)/2:y=main_h-110:w=280:h=100:show=0[vout]",
+        # Evrensel AI Filigran Silici — önce ffprobe ile gerçek boyutları alır, sonra 5 bölgeye delogo uygular
+        # delogo filtresi main_w/main_h DESTEKLEMİYOR, sabit piksel değerleri gerekiyor
+        import json as _json
+        try:
+            probe = subprocess.run([
+                "ffprobe", "-v", "quiet", "-print_format", "json",
+                "-show_streams", "-select_streams", "v:0", inp
+            ], capture_output=True, timeout=15)
+            info = _json.loads(probe.stdout)
+            W = int(info["streams"][0]["width"])
+            H = int(info["streams"][0]["height"])
+        except Exception:
+            W, H = 1080, 1920  # fallback dikey video
+
+        # 5 bölge: Üst Orta (Fliki.ai), Sağ Alt (Runway), Sol Alt (CapCut), Sağ Üst (Pika/Luma), Alt Orta (InVideo)
+        dw, dh = min(300, W // 3), min(110, H // 10)
+        zones = [
+            (max(0, (W - dw) // 2), max(0, int(H * 0.02)),  dw, dh),   # Üst Orta
+            (max(0, W - dw - 10),   max(0, H - dh - 10),    dw, dh),   # Sağ Alt
+            (10,                     max(0, H - dh - 10),    dw, dh),   # Sol Alt
+            (max(0, W - dw - 10),   10,                      dw, dh),   # Sağ Üst
+            (max(0, (W - dw) // 2), max(0, H - dh - 10),    dw, dh),   # Alt Orta
+        ]
+        filt = ""
+        for i, (zx, zy, zw, zh) in enumerate(zones):
+            tag_in = "[0:v]" if i == 0 else f"[v{i}]"
+            tag_out = f"[v{i+1}]" if i < len(zones) - 1 else "[vout]"
+            filt += f"{tag_in}delogo=x={zx}:y={zy}:w={zw}:h={zh}:show=0{tag_out};"
+        filt = filt.rstrip(";")
+        return c + ["-filter_complex", filt,
                     "-map", "[vout]", "-map", "0:a?", "-c:v", "libx264"] + fast + ["-c:a", "aac", out]
 
     if action in ("watermark", "filigran"):
